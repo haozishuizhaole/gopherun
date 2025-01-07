@@ -1,0 +1,38 @@
+# learning https://docs.github.com/zh/actions
+name: ci
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # Job：单元测试 & 覆盖率
+  test_coverage:
+    name: Go Test & Upload Coverage
+    runs-on: ubuntu-latest
+    env:
+      GO_VERSION: ${{ needs.setup.outputs.go-version }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Run Unit tests on Linux
+        run: |
+          go test -coverprofile=covprofile -coverpkg="github.com/haozishuizhaole/gopherun" ./...
+
+      - name: Install goveralls
+        run: |
+          go install github.com/mattn/goveralls@latest
+
+      - name: Send coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: goveralls -coverprofile=covprofile -service=github

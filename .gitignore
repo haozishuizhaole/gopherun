@@ -1,0 +1,91 @@
+# Node.js
+node_modules/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Go
+*.exe
+*.test
+*.out
+*.bin
+
+# C, C++, and other compiled files
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.nfs*
+
+# IDEs
+# JetBrains (IntelliJ IDEA, PyCharm, etc.)
+.idea/
+
+# Eclipse
+.project
+.classpath
+.csettings/
+
+# Visual Studio
+.vscode/
+.vs/
+.vsconfig
+
+# Xcode
+*.xcworkspace
+*.xcuserdata
+DerivedData/
+*.hmap
+
+
+# Other OS
+# Linux swap files
+*.swp
+*.swo
+
+# Temporary files
+*.log
+*.bak
+*.tmp
+
+# Database
+*.sqlite3
+*.db
+
+# Archives
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tgz
+*.zip
+*.rar
+
+# Logs
+
+# Backup files
+*.old
+*.orig
+
