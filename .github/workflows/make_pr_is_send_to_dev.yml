@@ -12,7 +12,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          target: master
+          target: main
           exclude: dev
           change-to: dev
           comment: |
