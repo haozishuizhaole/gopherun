@@ -1,4 +1,5 @@
 /*
+ *    Copyright (c) 2025 Chenzhihao
  *    Copyright (c) 2025 Middling
  *    Gopherun is licensed under Mulan PSL v2.
  *    You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -11,12 +12,21 @@
 package gopherun
 
 import (
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 	"reflect"
 	"testing"
 )
 
-func TestGopherunJSON_Encode_case1(t *testing.T) {
+type JSONTest struct {
+	suite.Suite
+}
+
+func TestJsonTest(t *testing.T) {
+	suite.Run(t, new(JSONTest))
+}
+
+func (j *JSONTest) TestGopherunJSON_Encode_case1() {
 	// mock
 	var i GopherunJSON
 
@@ -24,22 +34,20 @@ func TestGopherunJSON_Encode_case1(t *testing.T) {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
 	}
-
 	user := &User{
 		Name: "zhangsan",
 		Age:  12,
 	}
-
 	// run
 	bytes, err := i.Encode(user)
 
 	// assert
-	assert.True(t, err == nil)
-	assert.True(t, bytes != nil)
-	assert.True(t, string(bytes) == "{\"name\":\"zhangsan\",\"age\":12}")
+	require.True(j.T(), err == nil)
+	require.True(j.T(), bytes != nil)
+	require.True(j.T(), string(bytes) == "{\"name\":\"zhangsan\",\"age\":12}")
 }
 
-func TestGopherunJSON_EncodeToJSONStr_case1(t *testing.T) {
+func (j *JSONTest) TestGopherunJSON_EncodeToJSONStr_case1() {
 	// mock
 	var i GopherunJSON
 
@@ -47,21 +55,19 @@ func TestGopherunJSON_EncodeToJSONStr_case1(t *testing.T) {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
 	}
-
 	user := &User{
 		Name: "zhangsan",
 		Age:  12,
 	}
-
 	// run
 	jsonStr, err := i.EncodeToJSONStr(user)
 
-	// assert
-	assert.True(t, err == nil)
-	assert.True(t, jsonStr == "{\"name\":\"zhangsan\",\"age\":12}")
+	// require
+	require.True(j.T(), err == nil)
+	require.True(j.T(), jsonStr == "{\"name\":\"zhangsan\",\"age\":12}")
 }
 
-func TestGopherunJSON_EncodeToJSONStr_case2(t *testing.T) {
+func (j *JSONTest) TestGopherunJSON_EncodeToJSONStr_case2() {
 	// mock
 	var i GopherunJSON
 
@@ -69,104 +75,90 @@ func TestGopherunJSON_EncodeToJSONStr_case2(t *testing.T) {
 		Value string
 		Next  *Node
 	}
-
 	node1 := &Node{Value: "Node1"}
 	node2 := &Node{Value: "Node2"}
 	node1.Next = node2
 	node2.Next = node1 // 循环引用
-
 	// run
 	jsonStr, err := i.EncodeToJSONStr(node1)
 
-	// assert
-	assert.True(t, err != nil)
-	assert.True(t, jsonStr == "")
+	// require
+	require.True(j.T(), err != nil)
+	require.True(j.T(), jsonStr == "")
 }
 
-func TestGopherunJSON_Decode_case1(t *testing.T) {
+func (j *JSONTest) TestGopherunJSON_Decode_case1() {
 	// mock
 	var i GopherunJSON
 
 	jsonStr := "{\"name\":\"zhangsan\",\"age\":12}"
-
 	// run
-
 	type User struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
 	}
-
 	user := &User{}
 
 	err := i.Decode([]byte(jsonStr), user)
 
-	// assert
-	assert.True(t, err == nil)
-	assert.True(t, reflect.DeepEqual(user, &User{Name: "zhangsan", Age: 12}))
+	// require
+	require.True(j.T(), err == nil)
+	require.True(j.T(), reflect.DeepEqual(user, &User{Name: "zhangsan", Age: 12}))
 }
 
-func TestGopherunJSON_Decode_case2(t *testing.T) {
+func (j *JSONTest) TestGopherunJSON_Decode_case2() {
 	// mock
 	var i GopherunJSON
 
 	jsonStr := "{\"name\":\"zhangsan\",\"age\":12}sdsdsdsd" // invalid json str
-
 	// run
-
 	type User struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
 	}
-
 	user := &User{}
 
 	err := i.Decode([]byte(jsonStr), user)
 
-	// assert
-	assert.True(t, err != nil)
-	assert.True(t, reflect.DeepEqual(user, &User{}))
+	// require
+	require.True(j.T(), err != nil)
+	require.True(j.T(), reflect.DeepEqual(user, &User{}))
 }
 
-func TestGopherunJSON_Decode_case3(t *testing.T) {
+func (j *JSONTest) TestGopherunJSON_Decode_case3() {
 	// mock
 	var i GopherunJSON
 
 	jsonStr := "{\"name\":\"zhangsan\",\"age\":\"abc\"}" // invalid age type
-
 	// run
-
 	type User struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
 	}
-
 	user := &User{}
 
 	err := i.Decode([]byte(jsonStr), user)
 
-	// assert
-	assert.True(t, err != nil)
-	assert.True(t, reflect.DeepEqual(user, &User{Name: "zhangsan"})) // json反序列化部分失败，注意此时不要使用该结构
+	// require
+	require.True(j.T(), err != nil)
+	require.True(j.T(), reflect.DeepEqual(user, &User{Name: "zhangsan"})) // json反序列化部分失败，注意此时不要使用该结构
 }
 
-func TestGopherunJSON_DecodeByJSONStr_case1(t *testing.T) {
+func (j *JSONTest) TestGopherunJSON_DecodeByJSONStr_case1() {
 	// mock
 	var i GopherunJSON
 
 	jsonStr := "{\"name\":\"zhangsan\",\"age\":12}"
-
 	// run
-
 	type User struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
 	}
-
 	user := &User{}
 
 	err := i.DecodeByJSONStr(jsonStr, user)
 
-	// assert
-	assert.True(t, err == nil)
-	assert.True(t, reflect.DeepEqual(user, &User{Name: "zhangsan", Age: 12}))
+	// require
+	require.True(j.T(), err == nil)
+	require.True(j.T(), reflect.DeepEqual(user, &User{Name: "zhangsan", Age: 12}))
 }

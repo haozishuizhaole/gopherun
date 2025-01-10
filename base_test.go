@@ -10,16 +10,24 @@
 
 package gopherun
 
-type (
-	// GopherunJSON JSON处理
-	GopherunJSON byte
-
-	// GopherunFile 文件处理
-	GopherunFile byte
+import (
+	"github.com/stretchr/testify/suite"
 )
 
-var (
-	JSON GopherunJSON
+type BaseTest struct {
+	suite.Suite
+	tempDir string
+}
 
-	File GopherunFile
-)
+func (b *BaseTest) SetupSuite() {
+	b.T().Log("setting up Suite")
+	b.tempDir = b.T().TempDir()
+	b.T().Logf("test temp dir: %s", b.tempDir)
+}
+
+func (b *BaseTest) TearDownSuite() {
+	b.T().Cleanup(func() {
+		b.tempDir = ""
+	})
+	b.T().Log("tearing down Suite")
+}
