@@ -2,7 +2,7 @@ name: Make sure new PRs are sent to dev
 
 on:
   pull_request_target:
-    types: [ opened, edited ]
+    types: [ opened, reopened, edited ]
 
 jobs:
   check-branch:
@@ -16,7 +16,7 @@ jobs:
           exclude: dev
           change-to: dev
           comment: |
-            Your PR was set to target `master`, PRs should be target `dev`
+            Your PR was set to target `main`, PRs should be target `dev`
             The base branch of this PR has been automatically changed to `dev`, please check that there are no merge conflicts
 
             
