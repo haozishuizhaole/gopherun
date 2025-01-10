@@ -1,4 +1,4 @@
-module github.com/haozishuizhaole/gopherun
+module github.com/tootscharlie/gopherun
 
 go 1.19
 
