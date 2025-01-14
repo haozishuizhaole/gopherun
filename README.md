@@ -8,6 +8,7 @@
     <a href='https://coveralls.io/github/tootscharlie/gopherun'><img src='https://coveralls.io/repos/github/tootscharlie/gopherun/badge.svg' alt='Coverage Status' /></a>
     <a title="Code Size" target="_blank" href="https://github.com/tootscharlie/gopherun"><img src="https://img.shields.io/github/languages/code-size/tootscharlie/gopherun.svg?style=flat-square"></a>
     <br/>
+    <a title="GoDoc" target="_blank" href="https://pkg.go.dev/github.com/tootscharlie/gopherun"><img src="https://img.shields.io/badge/go_doc-reference-0088cc.svg?style=flat-square"></a>
     <a title="MulanPSL-2.0 license" target="_blank" href="https://github.com/tootscharlie/gopherun/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tootscharlie/gopherun?style=flat-square&color=%230088cc"></a>
     <a title="GitHub Commits" target="_blank" href="https://github.com/tootscharlie/gopherun/commits/main"><img src="https://img.shields.io/github/commit-activity/m/tootscharlie/gopherun.svg?style=flat-square"></a>
     <a title="Last Commit" target="_blank" href="https://github.com/tootscharlie/gopherun/commits/master"><img src="https://img.shields.io/github/last-commit/tootscharlie/gopherun.svg?style=flat-square&color=0088CC"></a>
@@ -17,7 +18,6 @@
 ## 💡 简介
 
 Gopherun 有“go for run”的意思，旨在为 Go 开发者提供一套简单高效的工具集，重新造一些“轮子”，让 Go 项目能够快速进行编写和搭建。
-
 
 ## ✨ 功能
 
