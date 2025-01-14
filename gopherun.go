@@ -16,10 +16,15 @@ type (
 
 	// GopherunFile 文件处理
 	GopherunFile byte
+
+	// GopherunRandom 随机
+	GopherunRandom byte
 )
 
 var (
 	JSON GopherunJSON
 
 	File GopherunFile
+
+	Random GopherunRandom
 )
