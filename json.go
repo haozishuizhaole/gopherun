@@ -12,11 +12,11 @@ package gopherun
 
 import "encoding/json"
 
-func (i *GopherunJSON) Encode(obj interface{}) ([]byte, error) {
+func (i GopherunJSON) Encode(obj interface{}) ([]byte, error) {
 	return json.Marshal(obj)
 }
 
-func (i *GopherunJSON) EncodeToJSONStr(obj interface{}) (jsonStr string, err error) {
+func (i GopherunJSON) EncodeToJSONStr(obj interface{}) (jsonStr string, err error) {
 	bytes, err := i.Encode(obj)
 	if err != nil {
 		return "", err
@@ -24,10 +24,10 @@ func (i *GopherunJSON) EncodeToJSONStr(obj interface{}) (jsonStr string, err err
 	return string(bytes), nil
 }
 
-func (i *GopherunJSON) Decode(bytes []byte, obj interface{}) error {
+func (i GopherunJSON) Decode(bytes []byte, obj interface{}) error {
 	return json.Unmarshal(bytes, obj)
 }
 
-func (i *GopherunJSON) DecodeByJSONStr(jsonStr string, obj interface{}) error {
+func (i GopherunJSON) DecodeByJSONStr(jsonStr string, obj interface{}) error {
 	return i.Decode([]byte(jsonStr), obj)
 }
