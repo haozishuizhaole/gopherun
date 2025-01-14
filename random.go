@@ -14,8 +14,8 @@ package gopherun
 
 import (
 	"crypto/rand"
-	"errors"
 	"math/big"
+	mathRand "math/rand"
 )
 
 // CharsetFlag 定义字符集标志类型
@@ -41,9 +41,9 @@ var _charsets = map[CharsetFlag]string{
 }
 
 // RandomString 根据指定的字符集和长度生成随机字符串
-func (i GopherunRandom) RandomString(charsetsFlag CharsetFlag, length uint) (string, error) {
+func (i GopherunRandom) RandomString(charsetsFlag CharsetFlag, length uint) string {
 	if length == 0 {
-		return "", errors.New("length must be greater than 0")
+		panic("length must be greater than 0")
 	}
 
 	// 如果 charsetsFlag 为 0，使用所有字符集
@@ -62,29 +62,32 @@ func (i GopherunRandom) RandomString(charsetsFlag CharsetFlag, length uint) (str
 	poolLen := int64(len(pool))
 
 	if poolLen == 0 {
-		return "", errors.New("invalid charset configuration")
+		panic("invalid charsetsFlag")
 	}
 
 	// 生成随机字符串
 	result := make([]byte, length)
-	for i := uint(0); i < length; i++ {
-		idx, err := rand.Int(rand.Reader, big.NewInt(poolLen))
-		if err != nil {
-			return "", err
+	for charIndex := uint(0); charIndex < length; charIndex++ {
+		var randIndex int64
+		if idx, e := rand.Int(rand.Reader, big.NewInt(poolLen)); e == nil {
+			randIndex = idx.Int64()
+		} else {
+			// 降级使用伪随机
+			randIndex = mathRand.Int63n(poolLen)
 		}
-		result[i] = pool[idx.Int64()]
+		result[charIndex] = pool[randIndex]
 	}
 
-	return string(result), nil
+	return string(result)
 }
 
 // RandomStringWithNumberAndLetter 生成指定长度的字母+数字随机字符串
-func (i GopherunRandom) RandomStringWithNumberAndLetter(length uint) (string, error) {
+func (i GopherunRandom) RandomStringWithNumberAndLetter(length uint) string {
 	return i.RandomString(CharsetLetter, length)
 }
 
 // RandomInt64 生成一个包含 min 和 max 边界的更安全的随机整数
-func (i GopherunRandom) RandomInt64(min, max int64) (int64, error) {
+func (i GopherunRandom) RandomInt64(min, max int64) int64 {
 	// 确保 min 小于 max
 	if min > max {
 		min, max = max, min
@@ -93,11 +96,15 @@ func (i GopherunRandom) RandomInt64(min, max int64) (int64, error) {
 	// 计算范围
 	rangeValue := max - min + 1
 
+	var randNumber int64
+
 	// 使用 crypto/rand 生成一个范围内的随机数
-	num, err := rand.Int(rand.Reader, big.NewInt(rangeValue))
-	if err != nil {
-		return 0, err
+	if num, err := rand.Int(rand.Reader, big.NewInt(rangeValue)); err == nil {
+		randNumber = num.Int64()
+	} else {
+		// 降级使用伪随机
+		randNumber = mathRand.Int63n(rangeValue)
 	}
 
-	return min + num.Int64(), nil
+	return min + randNumber
 }

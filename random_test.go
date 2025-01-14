@@ -32,21 +32,31 @@ func TestGopherunRandomTest(t *testing.T) {
 }
 
 func (i *GopherunRandomTest) TestGopherunRandom_RandomString_case1() {
-	randomString, err := Random.RandomString(1<<32, 16)
-	require.True(i.T(), err != nil)
+	defer func() {
+		panicErr := recover()
+		require.True(i.T(), panicErr != nil)
+	}()
+	randomString := Random.RandomString(1<<32, 16)
+	require.True(i.T(), randomString == "")
+}
+
+func (i *GopherunRandomTest) TestGopherunRandom_RandomString_case2() {
+	defer func() {
+		panicErr := recover()
+		require.True(i.T(), panicErr != nil)
+	}()
+	randomString := Random.RandomString(0, 0)
 	require.True(i.T(), randomString == "")
 
-	randomString, err = Random.RandomString(0, 0)
-	require.True(i.T(), err != nil)
-	require.True(i.T(), randomString == "")
+}
 
-	randomString, err = Random.RandomString(0, 16)
-	require.True(i.T(), err == nil)
+func (i *GopherunRandomTest) TestGopherunRandom_RandomString_case3() {
+	randomString := Random.RandomString(0, 16)
 	require.True(i.T(), randomString != "")
 	i.T().Logf("random string: %s", randomString)
 }
 
-func (i *GopherunRandomTest) TestGopherunRandom_RandomString_case2() {
+func (i *GopherunRandomTest) TestGopherunRandom_RandomString_case4() {
 	// mock
 	mockrandInt := gomonkey.ApplyFunc(rand.Int, func(rand io.Reader, max *big.Int) (n *big.Int, err error) {
 		return nil, errors.New("random error")
@@ -54,44 +64,39 @@ func (i *GopherunRandomTest) TestGopherunRandom_RandomString_case2() {
 	defer mockrandInt.Reset()
 
 	// run
-	randomString, err := Random.RandomString(0, 16)
+	randomString := Random.RandomString(0, 16)
 
 	// assert
-	require.True(i.T(), err != nil)
-	require.True(i.T(), randomString == "")
+	require.True(i.T(), randomString != "")
+	i.T().Logf("random string: %s", randomString)
 }
 
 func (i *GopherunRandomTest) TestGopherunRandom_RandomStringWithNumberAndLetter() {
-	letter, err := Random.RandomStringWithNumberAndLetter(16)
-	require.True(i.T(), err == nil)
+	letter := Random.RandomStringWithNumberAndLetter(16)
 	require.Regexp(i.T(), "^[a-zA-Z]+$", letter)
 }
 
 func (i *GopherunRandomTest) TestGopherunRandom_RandomInt64_case1() {
-	randomInt64, err := Random.RandomInt64(10, 5)
-	require.True(i.T(), err == nil)
+	randomInt64 := Random.RandomInt64(10, 5)
 	require.True(i.T(), randomInt64 <= 10 && randomInt64 >= 5)
 
-	randomInt64, err = Random.RandomInt64(0, 1)
-	require.True(i.T(), err == nil)
+	randomInt64 = Random.RandomInt64(0, 1)
 	require.True(i.T(), randomInt64 >= 0 && randomInt64 <= 1)
 
-	randomInt64, err = Random.RandomInt64(-1, 1)
-	require.True(i.T(), err == nil)
+	randomInt64 = Random.RandomInt64(-1, 1)
 	require.True(i.T(), randomInt64 >= -1 && randomInt64 <= 1)
 }
 
 func (i *GopherunRandomTest) TestGopherunRandom_RandomInt64_case2() {
 	// mock
-	mockrandInt := gomonkey.ApplyFunc(rand.Int, func(rand io.Reader, max *big.Int) (n *big.Int, err error) {
+	mockrandInt := gomonkey.ApplyFunc(rand.Int, func(rand io.Reader, max *big.Int) (*big.Int, error) {
 		return nil, errors.New("random error")
 	})
 	defer mockrandInt.Reset()
 
 	// run
-	randomInt64, err := Random.RandomInt64(0, 1)
+	randomInt64 := Random.RandomInt64(0, 1)
 
 	// assert
-	require.True(i.T(), err != nil)
-	require.True(i.T(), randomInt64 == 0)
+	i.T().Logf("random int64: %v", randomInt64)
 }
