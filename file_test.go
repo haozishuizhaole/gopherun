@@ -11,6 +11,8 @@
 package gopherun
 
 import (
+	"errors"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"os"
@@ -112,4 +114,247 @@ func (f *FileTest) TestGopherunFile_GetPwd() {
 	source, _ := filepath.EvalSymlinks(pwd)
 
 	require.Truef(f.T(), source != "" && target != "" && source == target, "GetAbsolutePath failed, %s, %s", source, target)
+}
+
+func (f *FileTest) TestGopherunFile_Size() {
+	err := os.Chdir(f.tempDir)
+	require.Truef(f.T(), err == nil, "Chdir err, %s", f.tempDir)
+
+	err = File.WriteFileSafer("student.txt", []byte("zhangsan"), os.ModePerm)
+	require.Truef(f.T(), err == nil, "WriteFileSafer err, %s", f.tempDir)
+	require.FileExists(f.T(), "student.txt", "student.txt file not exists")
+
+	size, err := File.Size("student.txt")
+	require.Truef(f.T(), err == nil, "WriteFileSafer err, %s", f.tempDir)
+	require.True(f.T(), size > 0)
+	f.T().Logf("student.txt file size: %d", size)
+
+	size, err = File.Size("student.txt.back")
+	require.True(f.T(), err != nil)
+}
+
+func (f *FileTest) TestGopherunFile_IsDir_case1() {
+	err := os.Chdir(f.tempDir)
+	require.Truef(f.T(), err == nil, "Chdir err, %s", f.tempDir)
+
+	isDir := File.IsDir("./student/")
+	require.True(f.T(), isDir == false)
+
+	isDir = File.IsDir("./")
+	require.True(f.T(), isDir == true)
+
+	err = File.WriteFileSafer("student.txt", []byte("zhangsan"), os.ModePerm)
+	require.Truef(f.T(), err == nil, "WriteFileSafer err, %s", f.tempDir)
+	require.FileExists(f.T(), "student.txt", "student.txt file not exists")
+	isDir = File.IsDir("student.txt")
+	require.True(f.T(), isDir == false)
+
+	err = File.MkdirAll("./student/")
+	require.Truef(f.T(), err == nil, "WriteFileSafer err, %s", f.tempDir)
+	require.DirExists(f.T(), "./student/", "student.txt file not exists")
+	isDir = File.IsDir("./student/")
+	require.True(f.T(), isDir == true)
+}
+
+func (f *FileTest) TestGopherunFile_IsDir_case2() {
+	// mock
+	mockosLstat := gomonkey.ApplyFunc(os.Lstat, func(name string) (os.FileInfo, error) {
+		return nil, errors.New("mock err")
+	})
+	defer mockosLstat.Reset()
+
+	// run
+	isDir := File.IsDir("./")
+
+	// assert
+	require.True(f.T(), isDir == false)
+}
+
+func (f *FileTest) TestGopherunFile_WriteFileSafer_case1() {
+	err := os.Chdir(f.tempDir)
+	require.Truef(f.T(), err == nil, "Chdir err, %s", f.tempDir)
+
+	err = File.WriteFileSafer("student.txt", []byte("zhangsan"), os.ModePerm)
+	require.Truef(f.T(), err == nil, "WriteFileSafer err, %s", f.tempDir)
+	require.FileExists(f.T(), "student.txt", "student.txt file not exists")
+}
+
+func (f *FileTest) TestGopherunFile_WriteFileSafer_case2() {
+	// mock
+	mockosOpenFile := gomonkey.ApplyFunc(os.OpenFile, func(name string, flag int, perm os.FileMode) (*os.File, error) {
+		return nil, errors.New("mock err")
+	})
+	defer mockosOpenFile.Reset()
+
+	// run
+	err := os.Chdir(f.tempDir)
+	require.Truef(f.T(), err == nil, "Chdir err, %s", f.tempDir)
+	err = File.WriteFileSafer("student.txt", []byte("zhangsan"), os.ModePerm)
+
+	// assert
+	require.Truef(f.T(), err != nil, "WriteFileSafer err, %s", f.tempDir)
+	require.NoFileExists(f.T(), "student.txt")
+}
+
+func (f *FileTest) TestGopherunFile_WriteFileSafer_case3() {
+	// mock
+	mockFile := &os.File{}
+	mockWrite := gomonkey.ApplyMethod(mockFile, "Write", func(_ *os.File, b []byte) (n int, err error) {
+		return 0, errors.New("mock err")
+	})
+	defer mockWrite.Reset()
+
+	mockosOpenFile := gomonkey.ApplyFunc(os.OpenFile, func(name string, flag int, perm os.FileMode) (*os.File, error) {
+		return mockFile, nil
+	})
+	defer mockosOpenFile.Reset()
+
+	// run
+	err := os.Chdir(f.tempDir)
+	require.Truef(f.T(), err == nil, "Chdir err, %s", f.tempDir)
+	err = File.WriteFileSafer("student.txt", []byte("zhangsan"), os.ModePerm)
+
+	// assert
+	require.Truef(f.T(), err != nil, "WriteFileSafer err, %s", f.tempDir)
+	require.NoFileExists(f.T(), "student.txt")
+}
+
+func (f *FileTest) TestGopherunFile_WriteFileSafer_case4() {
+	// mock
+	mockFile := &os.File{}
+	mockWrite := gomonkey.ApplyMethod(mockFile, "Write", func(_ *os.File, b []byte) (n int, err error) {
+		return 0, nil
+	})
+	defer mockWrite.Reset()
+
+	mockSync := gomonkey.ApplyMethod(mockFile, "Sync", func(_ *os.File) (err error) {
+		return errors.New("mock err")
+	})
+	defer mockSync.Reset()
+
+	mockosOpenFile := gomonkey.ApplyFunc(os.OpenFile, func(name string, flag int, perm os.FileMode) (*os.File, error) {
+		return mockFile, nil
+	})
+	defer mockosOpenFile.Reset()
+
+	// run
+	err := os.Chdir(f.tempDir)
+	require.Truef(f.T(), err == nil, "Chdir err, %s", f.tempDir)
+	err = File.WriteFileSafer("student.txt", []byte("zhangsan"), os.ModePerm)
+
+	// assert
+	require.Truef(f.T(), err != nil, "WriteFileSafer err, %s", f.tempDir)
+	require.NoFileExists(f.T(), "student.txt")
+}
+
+func (f *FileTest) TestGopherunFile_WriteFileSafer_case5() {
+	// mock
+	mockFile := &os.File{}
+	mockWrite := gomonkey.ApplyMethod(mockFile, "Write", func(_ *os.File, b []byte) (n int, err error) {
+		return 0, nil
+	})
+	defer mockWrite.Reset()
+
+	mockSync := gomonkey.ApplyMethod(mockFile, "Sync", func(_ *os.File) (err error) {
+		return nil
+	})
+	defer mockSync.Reset()
+
+	mockClose := gomonkey.ApplyMethod(mockFile, "Close", func(_ *os.File) (err error) {
+		return errors.New("mock err")
+	})
+	defer mockClose.Reset()
+
+	mockosOpenFile := gomonkey.ApplyFunc(os.OpenFile, func(name string, flag int, perm os.FileMode) (*os.File, error) {
+		return mockFile, nil
+	})
+	defer mockosOpenFile.Reset()
+
+	// run
+	err := os.Chdir(f.tempDir)
+	require.Truef(f.T(), err == nil, "Chdir err, %s", f.tempDir)
+	err = File.WriteFileSafer("student.txt", []byte("zhangsan"), os.ModePerm)
+
+	// assert
+	require.Truef(f.T(), err != nil, "WriteFileSafer err, %s", f.tempDir)
+	require.NoFileExists(f.T(), "student.txt")
+}
+
+func (f *FileTest) TestGopherunFile_WriteFileSafer_case6() {
+	// mock
+	mockFile := &os.File{}
+	mockWrite := gomonkey.ApplyMethod(mockFile, "Write", func(_ *os.File, b []byte) (n int, err error) {
+		return 0, nil
+	})
+	defer mockWrite.Reset()
+
+	mockSync := gomonkey.ApplyMethod(mockFile, "Sync", func(_ *os.File) (err error) {
+		return nil
+	})
+	defer mockSync.Reset()
+
+	mockClose := gomonkey.ApplyMethod(mockFile, "Close", func(_ *os.File) (err error) {
+		return nil
+	})
+	defer mockClose.Reset()
+
+	mockName := gomonkey.ApplyMethod(mockFile, "Name", func(_ *os.File) string {
+		return "mockName"
+	})
+	defer mockName.Reset()
+
+	mockChmod := gomonkey.ApplyFunc(os.Chmod, func(path string, mode os.FileMode) error {
+		return errors.New("mock err")
+	})
+	defer mockChmod.Reset()
+
+	mockosOpenFile := gomonkey.ApplyFunc(os.OpenFile, func(name string, flag int, perm os.FileMode) (*os.File, error) {
+		return mockFile, nil
+	})
+	defer mockosOpenFile.Reset()
+
+	// run
+	err := os.Chdir(f.tempDir)
+	require.Truef(f.T(), err == nil, "Chdir err, %s", f.tempDir)
+	err = File.WriteFileSafer("student.txt", []byte("zhangsan"), os.ModePerm)
+
+	// assert
+	require.Truef(f.T(), err != nil, "WriteFileSafer err, %s", f.tempDir)
+	require.NoFileExists(f.T(), "student.txt")
+}
+
+func (f *FileTest) TestGopherunFile_WriteFileSafer_case7() {
+	// mock
+	mockosRename := gomonkey.ApplyFunc(os.Rename, func(oldpath, newpath string) error {
+		f.T().Logf("oldpath: %s, newpath: %s", oldpath, newpath)
+		return errors.New("mock err")
+	})
+	defer mockosRename.Reset()
+
+	// run
+	err := os.Chdir(f.tempDir)
+	require.Truef(f.T(), err == nil, "Chdir err, %s", f.tempDir)
+	err = File.WriteFileSafer("student.txt", []byte("zhangsan"), os.ModePerm)
+
+	// assert
+	require.Truef(f.T(), err != nil, "WriteFileSafer err, %s", f.tempDir)
+	require.NoFileExists(f.T(), "student.txt")
+}
+
+func (f *FileTest) TestGopherunFile_WriteFileSafer_case8() {
+	// mock
+	mockosRename := gomonkey.ApplyFunc(os.Rename, func(oldpath, newpath string) error {
+		f.T().Logf("oldpath: %s, newpath: %s", oldpath, newpath)
+		return errors.New("mock err. access is denied")
+	})
+	defer mockosRename.Reset()
+
+	// run
+	err := os.Chdir(f.tempDir)
+	require.Truef(f.T(), err == nil, "Chdir err, %s", f.tempDir)
+	err = File.WriteFileSafer("student.txt", []byte("zhangsan"), os.ModePerm)
+
+	// assert
+	require.Truef(f.T(), err != nil, "WriteFileSafer err, %s", f.tempDir)
+	require.NoFileExists(f.T(), "student.txt")
 }
