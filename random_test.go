@@ -13,8 +13,13 @@
 package gopherun
 
 import (
+	"crypto/rand"
+	"errors"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"io"
+	"math/big"
 	"testing"
 )
 
@@ -26,7 +31,7 @@ func TestGopherunRandomTest(t *testing.T) {
 	suite.Run(t, new(GopherunRandomTest))
 }
 
-func (i *GopherunRandomTest) TestGopherunRandom_RandomString() {
+func (i *GopherunRandomTest) TestGopherunRandom_RandomString_case1() {
 	randomString, err := Random.RandomString(1<<32, 16)
 	require.True(i.T(), err != nil)
 	require.True(i.T(), randomString == "")
@@ -41,13 +46,28 @@ func (i *GopherunRandomTest) TestGopherunRandom_RandomString() {
 	i.T().Logf("random string: %s", randomString)
 }
 
+func (i *GopherunRandomTest) TestGopherunRandom_RandomString_case2() {
+	// mock
+	mockrandInt := gomonkey.ApplyFunc(rand.Int, func(rand io.Reader, max *big.Int) (n *big.Int, err error) {
+		return nil, errors.New("random error")
+	})
+	defer mockrandInt.Reset()
+
+	// run
+	randomString, err := Random.RandomString(0, 16)
+
+	// assert
+	require.True(i.T(), err != nil)
+	require.True(i.T(), randomString == "")
+}
+
 func (i *GopherunRandomTest) TestGopherunRandom_RandomStringWithNumberAndLetter() {
 	letter, err := Random.RandomStringWithNumberAndLetter(16)
 	require.True(i.T(), err == nil)
 	require.Regexp(i.T(), "^[a-zA-Z]+$", letter)
 }
 
-func (i *GopherunRandomTest) TestGopherunRandom_RandomInt64() {
+func (i *GopherunRandomTest) TestGopherunRandom_RandomInt64_case1() {
 	randomInt64, err := Random.RandomInt64(10, 5)
 	require.True(i.T(), err == nil)
 	require.True(i.T(), randomInt64 <= 10 && randomInt64 >= 5)
@@ -59,4 +79,19 @@ func (i *GopherunRandomTest) TestGopherunRandom_RandomInt64() {
 	randomInt64, err = Random.RandomInt64(-1, 1)
 	require.True(i.T(), err == nil)
 	require.True(i.T(), randomInt64 >= -1 && randomInt64 <= 1)
+}
+
+func (i *GopherunRandomTest) TestGopherunRandom_RandomInt64_case2() {
+	// mock
+	mockrandInt := gomonkey.ApplyFunc(rand.Int, func(rand io.Reader, max *big.Int) (n *big.Int, err error) {
+		return nil, errors.New("random error")
+	})
+	defer mockrandInt.Reset()
+
+	// run
+	randomInt64, err := Random.RandomInt64(0, 1)
+
+	// assert
+	require.True(i.T(), err != nil)
+	require.True(i.T(), randomInt64 == 0)
 }
