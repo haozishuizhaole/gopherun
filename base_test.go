@@ -21,13 +21,16 @@ type BaseTest struct {
 
 func (b *BaseTest) SetupSuite() {
 	b.T().Log("setting up Suite")
-	b.tempDir = b.T().TempDir()
-	b.T().Logf("test temp dir: %s", b.tempDir)
 }
 
 func (b *BaseTest) TearDownSuite() {
-	b.T().Cleanup(func() {
-		b.tempDir = ""
-	})
 	b.T().Log("tearing down Suite")
+}
+
+func (b *BaseTest) SetupTest() {
+	b.T().Logf("setting up Test: %s", b.T().Name())
+}
+
+func (b *BaseTest) TearDownTest() {
+	b.T().Logf("tearing down Test: %s", b.T().Name())
 }
